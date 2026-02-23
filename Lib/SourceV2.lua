@@ -1,4 +1,5 @@
--- lib
+--[[ update 1.8
+]]
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
@@ -8,6 +9,7 @@ local PlayerGui = Player:WaitForChild("PlayerGui")
 
 local LYui = {}
 LYui.Elements = {}
+LYui.Notifications = {}
 
 local AccentColor = Color3.fromRGB(120, 190, 255)
 local TopBarColor = Color3.fromRGB(35, 58, 95)
@@ -103,7 +105,7 @@ function LYui:CreateWindow(config)
 	local UIPadding = Instance.new("UIPadding")
 	UIPadding.PaddingLeft = UDim.new(0, 10)
 	UIPadding.PaddingTop = UDim.new(0, 10)
-	UIPadding.PaddingBottom = UDim.new(0, 150) -- Adicionado: 150 pixels extras para baixo
+	UIPadding.PaddingBottom = UDim.new(0, 150)
 	UIPadding.Parent = ContentFrame
 
 	local ResizeHandle = Instance.new("Frame")
@@ -189,9 +191,68 @@ function LYui:CreateWindow(config)
 		end
 	end)
 
-	CloseBtn.MouseButton1Click:Connect(function()
-		ScreenGui:Destroy()
-	end)
+	local function showCloseConfirmation()
+		local Overlay = Instance.new("Frame")
+		Overlay.Size = UDim2.new(1, 0, 1, 0)
+		Overlay.Position = UDim2.new(0, 0, 0, 0)
+		Overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+		Overlay.BackgroundTransparency = 0.5
+		Overlay.Parent = MainFrame
+
+		local ConfirmFrame = Instance.new("Frame")
+		ConfirmFrame.Size = UDim2.new(0, 200, 0, 100)
+		ConfirmFrame.Position = UDim2.new(0.5, -100, 0.5, -50)
+		ConfirmFrame.BackgroundColor3 = SecondaryBGColor
+		ConfirmFrame.BorderSizePixel = 0
+		ConfirmFrame.Parent = Overlay
+
+		local UICornerConfirm = Instance.new("UICorner")
+		UICornerConfirm.CornerRadius = UDim.new(0, 8)
+		UICornerConfirm.Parent = ConfirmFrame
+
+		local ConfirmTitle = Instance.new("TextLabel")
+		ConfirmTitle.Size = UDim2.new(1, 0, 0, 30)
+		ConfirmTitle.BackgroundTransparency = 1
+		ConfirmTitle.Text = "Fechar Janela?"
+		ConfirmTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+		ConfirmTitle.TextSize = 16
+		ConfirmTitle.Font = Enum.Font.SourceSansBold
+		ConfirmTitle.Parent = ConfirmFrame
+
+		local CancelBtn = Instance.new("TextButton")
+		CancelBtn.Size = UDim2.new(0.5, -10, 0, 30)
+		CancelBtn.Position = UDim2.new(0, 10, 1, -40)
+		CancelBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+		CancelBtn.Text = "Cancelar"
+		CancelBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		CancelBtn.Parent = ConfirmFrame
+
+		local UICornerCancel = Instance.new("UICorner")
+		UICornerCancel.CornerRadius = UDim.new(0, 4)
+		UICornerCancel.Parent = CancelBtn
+
+		CancelBtn.MouseButton1Click:Connect(function()
+			Overlay:Destroy()
+		end)
+
+		local CloseConfirmBtn = Instance.new("TextButton")
+		CloseConfirmBtn.Size = UDim2.new(0.5, -10, 0, 30)
+		CloseConfirmBtn.Position = UDim2.new(0.5, 10, 1, -40)
+		CloseConfirmBtn.BackgroundColor3 = AccentColor
+		CloseConfirmBtn.Text = "Fechar"
+		CloseConfirmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		CloseConfirmBtn.Parent = ConfirmFrame
+
+		local UICornerClose = Instance.new("UICorner")
+		UICornerClose.CornerRadius = UDim.new(0, 4)
+		UICornerClose.Parent = CloseConfirmBtn
+
+		CloseConfirmBtn.MouseButton1Click:Connect(function()
+			ScreenGui:Destroy()
+		end)
+	end
+
+	CloseBtn.MouseButton1Click:Connect(showCloseConfirmation)
 
 	window.ScreenGui = ScreenGui
 	window.MainFrame = MainFrame
@@ -428,7 +489,7 @@ function LYui:CreateWindow(config)
 				Wheel.Size = UDim2.new(0, 150, 0, 150)
 				Wheel.Position = UDim2.new(0, 170, 0, 20)
 				Wheel.BackgroundTransparency = 1
-				Wheel.Image = "rbxassetid://10734950309"
+				Wheel.Image = "rbxassetid://6012001633" -- Valid color wheel ID
 				Wheel.Parent = popup
 
 				local WheelIndicator = Instance.new("Frame")
@@ -946,130 +1007,110 @@ function LYui:CreateWindow(config)
 			end
 		end
 
-		function area:CreateCodeBox(cbConfig)
-			local CodeContainer = Instance.new("Frame")
-			CodeContainer.Size = UDim2.new(1, -10, 0, 35)
-			CodeContainer.BackgroundTransparency = 1
-			CodeContainer.Parent = AreaContent
+		function area:CreateProgressBar(pConfig)
+			local PBContainer = Instance.new("Frame")
+			PBContainer.Size = UDim2.new(1, -10, 0, 35)
+			PBContainer.BackgroundTransparency = 1
+			PBContainer.Parent = AreaContent
 
-			local CodeBtn = Instance.new("TextButton")
-			CodeBtn.Size = UDim2.new(1, 0, 0, 30)
-			CodeBtn.BackgroundColor3 = TopBarColor
-			CodeBtn.Text = cbConfig.Name or "Code Box"
-			CodeBtn.TextColor3 = Color3.fromRGB(255,255,255)
-			CodeBtn.Font = Enum.Font.SourceSansBold
-			CodeBtn.Parent = CodeContainer
+			local PBLabel = Instance.new("TextLabel")
+			PBLabel.Size = UDim2.new(1, 0, 0, 15)
+			PBLabel.BackgroundTransparency = 1
+			PBLabel.Text = pConfig.Name or "Progresso"
+			PBLabel.TextColor3 = TextColor
+			PBLabel.TextSize = 14
+			PBLabel.Font = Enum.Font.Code
+			PBLabel.TextXAlignment = Enum.TextXAlignment.Left
+			PBLabel.Parent = PBContainer
 
-			local UICornerBtn = Instance.new("UICorner")
-			UICornerBtn.CornerRadius = UDim.new(0, 4)
-			UICornerBtn.Parent = CodeBtn
+			local PBPercent = Instance.new("TextLabel")
+			PBPercent.Size = UDim2.new(1, 0, 0, 15)
+			PBPercent.BackgroundTransparency = 1
+			PBPercent.Text = "0%"
+			PBPercent.TextColor3 = TextColor
+			PBPercent.TextSize = 14
+			PBPercent.Font = Enum.Font.Code
+			PBPercent.TextXAlignment = Enum.TextXAlignment.Right
+			PBPercent.Parent = PBContainer
 
-			local EditorFrame = Instance.new("Frame")
-			EditorFrame.Size = UDim2.new(1, 0, 0, 0)
-			EditorFrame.Position = UDim2.new(0, 0, 0, 35)
-			EditorFrame.BackgroundColor3 = SecondaryBGColor
-			EditorFrame.BorderSizePixel = 1
-			EditorFrame.BorderColor3 = AccentColor
-			EditorFrame.Visible = false
-			EditorFrame.ClipsDescendants = true
-			EditorFrame.Parent = CodeContainer
+			local PBBG = Instance.new("Frame")
+			PBBG.Size = UDim2.new(1, 0, 0, 6)
+			PBBG.Position = UDim2.new(0, 0, 0, 20)
+			PBBG.BackgroundColor3 = Color3.fromRGB(25, 35, 50)
+			PBBG.BorderSizePixel = 0
+			PBBG.Parent = PBContainer
 
-			local isOpen = false
+			local PBFill = Instance.new("Frame")
+			PBFill.Size = UDim2.new(0, 0, 1, 0)
+			PBFill.BackgroundColor3 = AccentColor
+			PBFill.BorderSizePixel = 0
+			PBFill.Parent = PBBG
 
-			CodeBtn.MouseButton1Click:Connect(function()
-				isOpen = not isOpen
-				if isOpen then
-					EditorFrame:TweenSize(UDim2.new(1,0,0,340), "Out", "Quad", 0.25, true)
-					EditorFrame.Visible = true
-				else
-					EditorFrame:TweenSize(UDim2.new(1,0,0,0), "Out", "Quad", 0.25, true)
-					task.wait(0.25)
-					EditorFrame.Visible = false
-				end
-				UpdateAreaSize()
-			end)
-
-			local Header = Instance.new("Frame")
-			Header.Size = UDim2.new(1,0,0,25)
-			Header.BackgroundTransparency = 1
-			Header.Parent = EditorFrame
-
-			local function createDot(color, xPos, callback)
-				local dot = Instance.new("TextButton")
-				dot.Size = UDim2.new(0, 16, 0, 16)
-				dot.Position = UDim2.new(0, xPos, 0, 4)
-				dot.BackgroundColor3 = color
-				dot.Text = ""
-				dot.Parent = Header
-				local dc = Instance.new("UICorner")
-				dc.CornerRadius = UDim.new(1,0)
-				dc.Parent = dot
-				dot.MouseButton1Click:Connect(callback)
+			local function setProgress(pct)
+				pct = math.clamp(pct, 0, 100)
+				PBFill.Size = UDim2.new(pct / 100, 0, 1, 0)
+				PBPercent.Text = tostring(pct) .. "%"
 			end
 
-			createDot(Color3.fromRGB(0,255,80), 10, function()
-				local code = CodeText.Text
-				if code and #code > 3 then
-					local success, err = pcall(function() loadstring(code)() end)
-					if not success then warn("[CodeBox] Erro:", err) end
+			setProgress(pConfig.Default or 0)
+
+			if pConfig.Id then
+				LYui.Elements[pConfig.Id] = {
+					Type = "ProgressBar",
+					Update = function(newPct) setProgress(newPct) end
+				}
+			end
+		end
+
+		function area:CreateKeybind(kConfig)
+			local KBContainer = Instance.new("Frame")
+			KBContainer.Size = UDim2.new(1, -10, 0, 25)
+			KBContainer.BackgroundTransparency = 1
+			KBContainer.Parent = AreaContent
+
+			local KBLabel = Instance.new("TextLabel")
+			KBLabel.Size = UDim2.new(1, -60, 1, 0)
+			KBLabel.BackgroundTransparency = 1
+			KBLabel.Text = kConfig.Name or "Keybind"
+			KBLabel.TextColor3 = TextColor
+			KBLabel.TextSize = 14
+			KBLabel.Font = Enum.Font.Code
+			KBLabel.TextXAlignment = Enum.TextXAlignment.Left
+			KBLabel.Parent = KBContainer
+
+			local KBButton = Instance.new("TextButton")
+			KBButton.Size = UDim2.new(0, 50, 1, 0)
+			KBButton.Position = UDim2.new(1, -50, 0, 0)
+			KBButton.BackgroundColor3 = Color3.fromRGB(25, 35, 50)
+			KBButton.Text = kConfig.Default or "None"
+			KBButton.TextColor3 = TextColor
+			KBButton.Parent = KBContainer
+
+			local UICornerKB = Instance.new("UICorner")
+			UICornerKB.CornerRadius = UDim.new(0, 4)
+			UICornerKB.Parent = KBButton
+
+			local binding = false
+			KBButton.MouseButton1Click:Connect(function()
+				binding = true
+				KBButton.Text = "..."
+			end)
+
+			UserInputService.InputBegan:Connect(function(input)
+				if binding then
+					if input.UserInputType == Enum.UserInputType.Keyboard then
+						local key = input.KeyCode.Name
+						KBButton.Text = key
+						if kConfig.Callback then kConfig.Callback(key) end
+						binding = false
+					end
 				end
 			end)
 
-			createDot(Color3.fromRGB(255,60,60), 35, function()
-				CodeText.Text = ""
-			end)
-
-			createDot(Color3.fromRGB(60,140,255), 60, function()
-				local saveFolder = LYui.SaveFolder
-				if not isfolder(saveFolder) then makefolder(saveFolder) end
-				local fileName = saveFolder .. "/code_" .. os.date("%Y%m%d_%H%M%S") .. ".lua"
-				writefile(fileName, CodeText.Text)
-				print("💾 Código salvo:", fileName)
-			end)
-
-			local CodeText = Instance.new("TextBox")
-			CodeText.Size = UDim2.new(1, -16, 0, 240)
-			CodeText.Position = UDim2.new(0, 8, 0, 35)
-			CodeText.BackgroundColor3 = Color3.fromRGB(15,17,20)
-			CodeText.TextColor3 = Color3.fromRGB(180,255,180)
-			CodeText.TextSize = 14
-			CodeText.Font = Enum.Font.Code
-			CodeText.TextWrapped = true
-			CodeText.TextXAlignment = Enum.TextXAlignment.Left
-			CodeText.TextYAlignment = Enum.TextYAlignment.Top
-			CodeText.ClearTextOnFocus = false
-			CodeText.MultiLine = true
-			CodeText.Parent = EditorFrame
-
-			local CodeCorner = Instance.new("UICorner")
-			CodeCorner.CornerRadius = UDim.new(0,4)
-			CodeCorner.Parent = CodeText
-
-			local SendBtn = Instance.new("TextButton")
-			SendBtn.Size = UDim2.new(1, -16, 0, 35)
-			SendBtn.Position = UDim2.new(0, 8, 0, 285)
-			SendBtn.BackgroundColor3 = AccentColor
-			SendBtn.Text = "ENVIAR / EXECUTAR"
-			SendBtn.TextColor3 = Color3.new(1,1,1)
-			SendBtn.Font = Enum.Font.SourceSansBold
-			SendBtn.Parent = EditorFrame
-
-			local SendCorner = Instance.new("UICorner")
-			SendCorner.CornerRadius = UDim.new(0,4)
-			SendCorner.Parent = SendBtn
-
-			SendBtn.MouseButton1Click:Connect(function()
-				local code = CodeText.Text
-				if code and #code > 3 then
-					local success, err = pcall(function() loadstring(code)() end)
-					if not success then warn("[CodeBox] Erro:", err) end
-				end
-			end)
-
-			if cbConfig.Id then
-				LYui.Elements[cbConfig.Id] = {
-					Type = "CodeBox",
-					Update = function(newCode) CodeText.Text = tostring(newCode) end
+			if kConfig.Id then
+				LYui.Elements[kConfig.Id] = {
+					Type = "Keybind",
+					Update = function(newKey) KBButton.Text = newKey end
 				}
 			end
 		end
@@ -1120,6 +1161,85 @@ function LYui:CreateWindow(config)
 			end
 		end)
 		print("🔄 AutoSave ativado (a cada 15s)")
+	end
+
+	function LYui:Notify(nConfig)
+		local NotifyFrame = Instance.new("Frame")
+		NotifyFrame.Size = UDim2.new(0, 300, 0, 80)
+		NotifyFrame.BackgroundColor3 = SecondaryBGColor
+		NotifyFrame.BorderSizePixel = 0
+		NotifyFrame.Position = UDim2.new(1, -310, 0, 10 + (#LYui.Notifications * 90))
+		NotifyFrame.Parent = ScreenGui
+
+		local UICornerNotify = Instance.new("UICorner")
+		UICornerNotify.CornerRadius = UDim.new(0, 8)
+		UICornerNotify.Parent = NotifyFrame
+
+		local NotifyTitle = Instance.new("TextLabel")
+		NotifyTitle.Size = UDim2.new(1, 0, 0, 20)
+		NotifyTitle.Position = UDim2.new(0, 0, 0, 5)
+		NotifyTitle.BackgroundTransparency = 1
+		NotifyTitle.Text = nConfig.Title or "Notificação"
+		NotifyTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+		NotifyTitle.TextSize = 16
+		NotifyTitle.Font = Enum.Font.SourceSansBold
+		NotifyTitle.TextXAlignment = Enum.TextXAlignment.Center
+		NotifyTitle.Parent = NotifyFrame
+
+		local NotifyDesc = Instance.new("TextLabel")
+		NotifyDesc.Size = UDim2.new(1, -10, 0, 30)
+		NotifyDesc.Position = UDim2.new(0, 5, 0, 25)
+		NotifyDesc.BackgroundTransparency = 1
+		NotifyDesc.Text = nConfig.Description or ""
+		NotifyDesc.TextColor3 = TextColor
+		NotifyDesc.TextSize = 12
+		NotifyDesc.Font = Enum.Font.SourceSans
+		NotifyDesc.TextXAlignment = Enum.TextXAlignment.Center
+		NotifyDesc.Parent = NotifyFrame
+
+		if nConfig.Image then
+			local NotifyImage = Instance.new("ImageLabel")
+			NotifyImage.Size = UDim2.new(0, 40, 0, 40)
+			NotifyImage.Position = UDim2.new(0, 5, 0, 5)
+			NotifyImage.BackgroundTransparency = 1
+			NotifyImage.Image = nConfig.Image
+			NotifyImage.Parent = NotifyFrame
+		end
+
+		if nConfig.Button then
+			local NotifyBtn = Instance.new("TextButton")
+			NotifyBtn.Size = UDim2.new(1, -10, 0, 25)
+			NotifyBtn.Position = UDim2.new(0, 5, 1, -30)
+			NotifyBtn.BackgroundColor3 = AccentColor
+			NotifyBtn.Text = nConfig.Button.Text or "OK"
+			NotifyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+			NotifyBtn.Parent = NotifyFrame
+
+			local UICornerBtn = Instance.new("UICorner")
+			UICornerBtn.CornerRadius = UDim.new(0, 4)
+			UICornerBtn.Parent = NotifyBtn
+
+			NotifyBtn.MouseButton1Click:Connect(function()
+				if nConfig.Button.Callback then nConfig.Button.Callback() end
+				NotifyFrame:Destroy()
+			end)
+		end
+
+		table.insert(LYui.Notifications, NotifyFrame)
+
+		NotifyFrame.Position = UDim2.new(1, 0, NotifyFrame.Position.Y.Scale, NotifyFrame.Position.Y.Offset)
+		TweenService:Create(NotifyFrame, TweenInfo.new(0.3), {Position = UDim2.new(1, -310, NotifyFrame.Position.Y.Scale, NotifyFrame.Position.Y.Offset)}):Play()
+
+		if not nConfig.Button then
+			task.wait(5)
+			TweenService:Create(NotifyFrame, TweenInfo.new(0.3), {Position = UDim2.new(1, 0, NotifyFrame.Position.Y.Scale, NotifyFrame.Position.Y.Offset)}):Play()
+			task.wait(0.3)
+			NotifyFrame:Destroy()
+		end
+
+		for i, notif in ipairs(LYui.Notifications) do
+			TweenService:Create(notif, TweenInfo.new(0.2), {Position = UDim2.new(1, -310, 0, 10 + ((i-1) * 90))}):Play()
+		end
 	end
 
 	return window
