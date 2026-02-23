@@ -1,6 +1,4 @@
---[[ update 1.5
-LYui Lib 
-]]
+-- lib
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
@@ -105,6 +103,7 @@ function LYui:CreateWindow(config)
 	local UIPadding = Instance.new("UIPadding")
 	UIPadding.PaddingLeft = UDim.new(0, 10)
 	UIPadding.PaddingTop = UDim.new(0, 10)
+	UIPadding.PaddingBottom = UDim.new(0, 150) -- Adicionado: 150 pixels extras para baixo
 	UIPadding.Parent = ContentFrame
 
 	local ResizeHandle = Instance.new("Frame")
