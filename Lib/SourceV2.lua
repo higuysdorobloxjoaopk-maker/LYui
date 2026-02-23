@@ -1,14 +1,16 @@
--- lib
+-- [[ update 1.5
+LYui Lib 
+]]
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
 local LYui = {}
 LYui.Elements = {}
 
--- NOVO: Controle total de tema (muda cores da GUI inteira em tempo real)
 local AccentColor = Color3.fromRGB(120, 190, 255)
 local TopBarColor = Color3.fromRGB(35, 58, 95)
 local MainBGColor = Color3.fromRGB(15, 17, 20)
@@ -17,7 +19,6 @@ local TextColor = Color3.fromRGB(200, 200, 200)
 
 function LYui:SetAccentColor(newColor)
 	AccentColor = newColor
-	-- Atualiza elementos existentes que suportam update de cor
 	for _, el in pairs(LYui.Elements) do
 		if el.AccentUpdate then el.AccentUpdate(newColor) end
 	end
@@ -32,6 +33,8 @@ end
 function LYui:CreateWindow(config)
 	local window = {}
 	local titleText = config.Title or "LYui"
+	local scriptName = config.ScriptName or "LYuiScript"
+	LYui.SaveFolder = "SAVES." .. scriptName .. ".SAVES"
 
 	local ScreenGui = Instance.new("ScreenGui")
 	ScreenGui.Name = "LYui_Interface"
@@ -155,7 +158,7 @@ function LYui:CreateWindow(config)
 	UserInputService.InputChanged:Connect(function(input)
 		if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 			local delta = input.Position - resizeStart
-			local newWidth = math.max(180, startSize.X.Offset + delta.X)   -- tamanho mínimo aumentado
+			local newWidth = math.max(180, startSize.X.Offset + delta.X)
 			local newHeight = math.max(100, startSize.Y.Offset + delta.Y)
 			MainFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
 		end
@@ -191,14 +194,12 @@ function LYui:CreateWindow(config)
 		ScreenGui:Destroy()
 	end)
 
-	-- CONTROLE TOTAL DA JANELA (ROOT)
 	window.ScreenGui = ScreenGui
 	window.MainFrame = MainFrame
 	window.ContentFrame = ContentFrame
 	window.Destroy = function() ScreenGui:Destroy() end
 
 	function window:CreateBanner(bConfig)
-		-- EXATAMENTE o código original (não mudei nada)
 		local BannerFrame = Instance.new("Frame")
 		BannerFrame.Size = UDim2.new(1, -10, 0, 100)
 		BannerFrame.BackgroundColor3 = SecondaryBGColor
@@ -280,7 +281,7 @@ function LYui:CreateWindow(config)
 		Header.Parent = AreaFrame
 
 		local AreaTitle = Instance.new("TextLabel")
-		AreaTitle.Size = UDim2.new(1, -45, 1, 0)
+		AreaTitle.Size = UDim2.new(1, -25, 1, 0)
 		AreaTitle.Position = UDim2.new(0, 5, 0, 0)
 		AreaTitle.BackgroundTransparency = 1
 		AreaTitle.Text = areaName
@@ -292,21 +293,12 @@ function LYui:CreateWindow(config)
 
 		local MinBtn = Instance.new("TextButton")
 		MinBtn.Size = UDim2.new(0, 20, 1, 0)
-		MinBtn.Position = UDim2.new(1, -40, 0, 0)
+		MinBtn.Position = UDim2.new(1, -20, 0, 0)
 		MinBtn.BackgroundTransparency = 1
 		MinBtn.Text = "▼"
 		MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 		MinBtn.TextSize = 10
 		MinBtn.Parent = Header
-
-		local DelBtn = Instance.new("TextButton") -- NOVO: botão excluir área
-		DelBtn.Size = UDim2.new(0, 20, 1, 0)
-		DelBtn.Position = UDim2.new(1, -20, 0, 0)
-		DelBtn.BackgroundTransparency = 1
-		DelBtn.Text = "✕"
-		DelBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
-		DelBtn.TextSize = 12
-		DelBtn.Parent = Header
 
 		local AreaContent = Instance.new("Frame")
 		AreaContent.Size = UDim2.new(1, 0, 1, -20)
@@ -352,11 +344,6 @@ function LYui:CreateWindow(config)
 			end
 		end)
 
-		DelBtn.MouseButton1Click:Connect(function() -- EXCLUIR ÁREA
-			AreaFrame:Destroy()
-		end)
-
-		-- CONTROLE TOTAL DA ÁREA
 		area.AreaFrame = AreaFrame
 		function area:Destroy() AreaFrame:Destroy() end
 		function area:Minimize()
@@ -373,7 +360,6 @@ function LYui:CreateWindow(config)
 			UpdateAreaSize()
 		end
 
-		-- === COLOR PICKER TOTALMENTE REFEITO (exatamente como você pediu) ===
 		function area:CreateColorPicker(cConfig)
 			local CPContainer = Instance.new("Frame")
 			CPContainer.Size = UDim2.new(1, -10, 0, 25)
@@ -431,7 +417,6 @@ function LYui:CreateWindow(config)
 				pc.CornerRadius = UDim.new(0, 8)
 				pc.Parent = popup
 
-				-- Preview box
 				local Preview = Instance.new("Frame")
 				Preview.Size = UDim2.new(0, 120, 0, 120)
 				Preview.Position = UDim2.new(0, 20, 0, 20)
@@ -440,12 +425,11 @@ function LYui:CreateWindow(config)
 				Preview.Parent = popup
 				local pcc = Instance.new("UICorner"); pcc.CornerRadius = UDim.new(0, 6); pcc.Parent = Preview
 
-				-- CÍRCULO CROMÁTICO (color wheel) usando asset confiável + indicador
 				local Wheel = Instance.new("ImageLabel")
 				Wheel.Size = UDim2.new(0, 150, 0, 150)
 				Wheel.Position = UDim2.new(0, 170, 0, 20)
 				Wheel.BackgroundTransparency = 1
-				Wheel.Image = "rbxassetid://10734950309" -- círculo cromático padrão usado em milhares de UIs Roblox
+				Wheel.Image = "rbxassetid://10734950309"
 				Wheel.Parent = popup
 
 				local WheelIndicator = Instance.new("Frame")
@@ -456,7 +440,6 @@ function LYui:CreateWindow(config)
 				WheelIndicator.Parent = Wheel
 				local wic = Instance.new("UICorner"); wic.CornerRadius = UDim.new(1,0); wic.Parent = WheelIndicator
 
-				-- Predefined colors (paleta)
 				local Palette = Instance.new("Frame")
 				Palette.Size = UDim2.new(1, -40, 0, 60)
 				Palette.Position = UDim2.new(0, 20, 0, 160)
@@ -488,7 +471,6 @@ function LYui:CreateWindow(config)
 					end)
 				end
 
-				-- RGB TextBoxes
 				local function makeRGBBox(name, val, y)
 					local f = Instance.new("Frame")
 					f.Size = UDim2.new(0, 280, 0, 26)
@@ -512,7 +494,7 @@ function LYui:CreateWindow(config)
 					box.Parent = f
 					local bc = Instance.new("UICorner"); bc.CornerRadius = UDim.new(0,4); bc.Parent = box
 
-					box.FocusLost:Connect(function(enter)
+					box.FocusLost:Connect(function()
 						local n = tonumber(box.Text)
 						if n then
 							n = math.clamp(n, 0, 255)/255
@@ -530,7 +512,6 @@ function LYui:CreateWindow(config)
 				local gBox = makeRGBBox("G", currentColor.G, 270)
 				local bBox = makeRGBBox("B", currentColor.B, 300)
 
-				-- Hex TextBox
 				local hexBox = Instance.new("TextBox")
 				hexBox.Size = UDim2.new(0, 120, 0, 26)
 				hexBox.Position = UDim2.new(0, 20, 0, 340)
@@ -554,7 +535,6 @@ function LYui:CreateWindow(config)
 					end
 				end)
 
-				-- Botão fechar
 				local closeB = Instance.new("TextButton")
 				closeB.Size = UDim2.new(0, 100, 0, 35)
 				closeB.Position = UDim2.new(0.5, -50, 1, -45)
@@ -569,13 +549,11 @@ function LYui:CreateWindow(config)
 					popupOpen = false
 				end)
 
-				-- Fechar ao clicar fora
 				local closeConn
 				closeConn = UserInputService.InputBegan:Connect(function(inp)
 					if inp.UserInputType == Enum.UserInputType.MouseButton1 then
 						local mp = inp.Position
-						if popup and (mp.X < popup.AbsolutePosition.X or mp.X > popup.AbsolutePosition.X + popup.AbsoluteSize.X or
-						              mp.Y < popup.AbsolutePosition.Y or mp.Y > popup.AbsolutePosition.Y + popup.AbsoluteSize.Y) then
+						if popup and (mp.X < popup.AbsolutePosition.X or mp.X > popup.AbsolutePosition.X + popup.AbsoluteSize.X or mp.Y < popup.AbsolutePosition.Y or mp.Y > popup.AbsolutePosition.Y + popup.AbsoluteSize.Y) then
 							popup:Destroy()
 							popupOpen = false
 							closeConn:Disconnect()
@@ -588,16 +566,14 @@ function LYui:CreateWindow(config)
 				LYui.Elements[cConfig.Id] = {
 					Type = "ColorPicker",
 					Update = function(newColor)
-						if typeof(newColor) == "Color3" then
-							updateColor(newColor)
-						end
+						if typeof(newColor) == "Color3" then updateColor(newColor) end
 					end,
-					AccentUpdate = function(newAccent) ColorBtn.BorderColor3 = newAccent end
+					AccentUpdate = function(newAccent) ColorBtn.BorderColor3 = newAccent end,
+					CurrentColor = function() return currentColor end
 				}
 			end
 		end
 
-		-- NOVO: TextBox (Input) completo e editável após criação
 		function area:CreateTextBox(tConfig)
 			local TBContainer = Instance.new("Frame")
 			TBContainer.Size = UDim2.new(1, -10, 0, 35)
@@ -643,12 +619,12 @@ function LYui:CreateWindow(config)
 						TB.Text = tostring(newText)
 						fire()
 					end,
-					AccentUpdate = function(newAccent) TB.BorderColor3 = newAccent end
+					AccentUpdate = function(newAccent) TB.BorderColor3 = newAccent end,
+					CurrentText = function() return TB.Text end
 				}
 			end
 		end
 
-		-- Resto das funções da área (label, toggle, button, slider, dropdown) permanecem 100% iguais ao original
 		function area:CreateLabel(lConfig)
 			local InfoLabel = Instance.new("TextLabel")
 			InfoLabel.Size = UDim2.new(1, -10, 0, 15)
@@ -669,7 +645,6 @@ function LYui:CreateWindow(config)
 		end
 
 		function area:CreateToggle(tConfig)
-			-- código original exato (mantido 100%)
 			local ToggleContainer = Instance.new("Frame")
 			ToggleContainer.Size = UDim2.new(1, -10, 0, 20)
 			ToggleContainer.BackgroundTransparency = 1
@@ -727,13 +702,13 @@ function LYui:CreateWindow(config)
 			if tConfig.Id then
 				LYui.Elements[tConfig.Id] = {
 					Type = "Toggle",
-					Update = function(newState) setToggle(newState) end
+					Update = function(newState) setToggle(newState) end,
+					CurrentState = function() return toggled end
 				}
 			end
 		end
 
 		function area:CreateButton(bConfig)
-			-- original exato
 			local BtnFrame = Instance.new("Frame")
 			BtnFrame.Size = UDim2.new(1, -10, 0, 25)
 			BtnFrame.BackgroundTransparency = 1
@@ -766,7 +741,6 @@ function LYui:CreateWindow(config)
 		end
 
 		function area:CreateSlider(sConfig)
-			-- original exato
 			local SliderContainer = Instance.new("Frame")
 			SliderContainer.Size = UDim2.new(1, -10, 0, 35)
 			SliderContainer.BackgroundTransparency = 1
@@ -814,9 +788,11 @@ function LYui:CreateWindow(config)
 			local min = sConfig.Min or 0
 			local max = sConfig.Max or 100
 			local def = sConfig.Default or min
+			local currentVal = def
 
 			local function setSlider(val)
 				val = math.clamp(val, min, max)
+				currentVal = val
 				local pct = (val - min) / (max - min)
 				SliderFill.Size = UDim2.new(pct, 0, 1, 0)
 				ValueLabel.Text = tostring(math.floor(val))
@@ -851,13 +827,13 @@ function LYui:CreateWindow(config)
 			if sConfig.Id then
 				LYui.Elements[sConfig.Id] = {
 					Type = "Slider",
-					Update = function(newVal) setSlider(newVal) end
+					Update = function(newVal) setSlider(newVal) end,
+					CurrentValue = function() return currentVal end
 				}
 			end
 		end
 
 		function area:CreateDropdown(dConfig)
-			-- original exato
 			local DropContainer = Instance.new("Frame")
 			DropContainer.Size = UDim2.new(1, -10, 0, 25)
 			DropContainer.BackgroundTransparency = 1
@@ -971,7 +947,180 @@ function LYui:CreateWindow(config)
 			end
 		end
 
+		function area:CreateCodeBox(cbConfig)
+			local CodeContainer = Instance.new("Frame")
+			CodeContainer.Size = UDim2.new(1, -10, 0, 35)
+			CodeContainer.BackgroundTransparency = 1
+			CodeContainer.Parent = AreaContent
+
+			local CodeBtn = Instance.new("TextButton")
+			CodeBtn.Size = UDim2.new(1, 0, 0, 30)
+			CodeBtn.BackgroundColor3 = TopBarColor
+			CodeBtn.Text = cbConfig.Name or "Code Box"
+			CodeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+			CodeBtn.Font = Enum.Font.SourceSansBold
+			CodeBtn.Parent = CodeContainer
+
+			local UICornerBtn = Instance.new("UICorner")
+			UICornerBtn.CornerRadius = UDim.new(0, 4)
+			UICornerBtn.Parent = CodeBtn
+
+			local EditorFrame = Instance.new("Frame")
+			EditorFrame.Size = UDim2.new(1, 0, 0, 0)
+			EditorFrame.Position = UDim2.new(0, 0, 0, 35)
+			EditorFrame.BackgroundColor3 = SecondaryBGColor
+			EditorFrame.BorderSizePixel = 1
+			EditorFrame.BorderColor3 = AccentColor
+			EditorFrame.Visible = false
+			EditorFrame.ClipsDescendants = true
+			EditorFrame.Parent = CodeContainer
+
+			local isOpen = false
+
+			CodeBtn.MouseButton1Click:Connect(function()
+				isOpen = not isOpen
+				if isOpen then
+					EditorFrame:TweenSize(UDim2.new(1,0,0,340), "Out", "Quad", 0.25, true)
+					EditorFrame.Visible = true
+				else
+					EditorFrame:TweenSize(UDim2.new(1,0,0,0), "Out", "Quad", 0.25, true)
+					task.wait(0.25)
+					EditorFrame.Visible = false
+				end
+				UpdateAreaSize()
+			end)
+
+			local Header = Instance.new("Frame")
+			Header.Size = UDim2.new(1,0,0,25)
+			Header.BackgroundTransparency = 1
+			Header.Parent = EditorFrame
+
+			local function createDot(color, xPos, callback)
+				local dot = Instance.new("TextButton")
+				dot.Size = UDim2.new(0, 16, 0, 16)
+				dot.Position = UDim2.new(0, xPos, 0, 4)
+				dot.BackgroundColor3 = color
+				dot.Text = ""
+				dot.Parent = Header
+				local dc = Instance.new("UICorner")
+				dc.CornerRadius = UDim.new(1,0)
+				dc.Parent = dot
+				dot.MouseButton1Click:Connect(callback)
+			end
+
+			createDot(Color3.fromRGB(0,255,80), 10, function()
+				local code = CodeText.Text
+				if code and #code > 3 then
+					local success, err = pcall(function() loadstring(code)() end)
+					if not success then warn("[CodeBox] Erro:", err) end
+				end
+			end)
+
+			createDot(Color3.fromRGB(255,60,60), 35, function()
+				CodeText.Text = ""
+			end)
+
+			createDot(Color3.fromRGB(60,140,255), 60, function()
+				local saveFolder = LYui.SaveFolder
+				if not isfolder(saveFolder) then makefolder(saveFolder) end
+				local fileName = saveFolder .. "/code_" .. os.date("%Y%m%d_%H%M%S") .. ".lua"
+				writefile(fileName, CodeText.Text)
+				print("💾 Código salvo:", fileName)
+			end)
+
+			local CodeText = Instance.new("TextBox")
+			CodeText.Size = UDim2.new(1, -16, 0, 240)
+			CodeText.Position = UDim2.new(0, 8, 0, 35)
+			CodeText.BackgroundColor3 = Color3.fromRGB(15,17,20)
+			CodeText.TextColor3 = Color3.fromRGB(180,255,180)
+			CodeText.TextSize = 14
+			CodeText.Font = Enum.Font.Code
+			CodeText.TextWrapped = true
+			CodeText.TextXAlignment = Enum.TextXAlignment.Left
+			CodeText.TextYAlignment = Enum.TextYAlignment.Top
+			CodeText.ClearTextOnFocus = false
+			CodeText.MultiLine = true
+			CodeText.Parent = EditorFrame
+
+			local CodeCorner = Instance.new("UICorner")
+			CodeCorner.CornerRadius = UDim.new(0,4)
+			CodeCorner.Parent = CodeText
+
+			local SendBtn = Instance.new("TextButton")
+			SendBtn.Size = UDim2.new(1, -16, 0, 35)
+			SendBtn.Position = UDim2.new(0, 8, 0, 285)
+			SendBtn.BackgroundColor3 = AccentColor
+			SendBtn.Text = "ENVIAR / EXECUTAR"
+			SendBtn.TextColor3 = Color3.new(1,1,1)
+			SendBtn.Font = Enum.Font.SourceSansBold
+			SendBtn.Parent = EditorFrame
+
+			local SendCorner = Instance.new("UICorner")
+			SendCorner.CornerRadius = UDim.new(0,4)
+			SendCorner.Parent = SendBtn
+
+			SendBtn.MouseButton1Click:Connect(function()
+				local code = CodeText.Text
+				if code and #code > 3 then
+					local success, err = pcall(function() loadstring(code)() end)
+					if not success then warn("[CodeBox] Erro:", err) end
+				end
+			end)
+
+			if cbConfig.Id then
+				LYui.Elements[cbConfig.Id] = {
+					Type = "CodeBox",
+					Update = function(newCode) CodeText.Text = tostring(newCode) end
+				}
+			end
+		end
+
 		return area
+	end
+
+	local function ensureSaveFolder()
+		if not isfolder("SAVES") then makefolder("SAVES") end
+		if not isfolder(LYui.SaveFolder) then makefolder(LYui.SaveFolder) end
+	end
+
+	function window:Save(saveName)
+		ensureSaveFolder()
+		local data = {}
+		for id, el in pairs(LYui.Elements) do
+			if el.CurrentState then data[id] = el.CurrentState() end
+			if el.CurrentValue then data[id] = el.CurrentValue() end
+			if el.CurrentText then data[id] = el.CurrentText() end
+			if el.CurrentColor then
+				local c = el.CurrentColor()
+				data[id] = {R = c.R, G = c.G, B = c.B}
+			end
+		end
+		local filename = LYui.SaveFolder .. "/save_" .. saveName .. "_" .. os.date("%Y%m%d_%H%M%S") .. ".json"
+		writefile(filename, HttpService:JSONEncode(data))
+		print("💾 SALVO:", filename)
+	end
+
+	function window:Load(saveName)
+		ensureSaveFolder()
+		local filename = LYui.SaveFolder .. "/save_" .. saveName .. ".json"
+		if isfile(filename) then
+			local data = HttpService:JSONDecode(readfile(filename))
+			for id, value in pairs(data) do
+				LYui:Update(id, value)
+			end
+			print("📂 CARREGADO:", saveName)
+		end
+	end
+
+	function window:AutoSaveAll()
+		ensureSaveFolder()
+		task.spawn(function()
+			while true do
+				task.wait(15)
+				window:Save("autosave")
+			end
+		end)
+		print("🔄 AutoSave ativado (a cada 15s)")
 	end
 
 	return window
