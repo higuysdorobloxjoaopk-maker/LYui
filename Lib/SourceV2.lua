@@ -699,7 +699,8 @@ end
 }
 end
       end
-
+end
+            
 function area:CreateColorPicker(cConfig)
 local CPContainer = Instance.new("Frame")
 CPContainer.Size = UDim2.new(1, -10, 0, 20)
