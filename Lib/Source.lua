@@ -383,30 +383,3 @@ function LYui:CreateWindow(titleText)
 end
 
 return LYui
-
--- ==========================================
--- EXEMPLE
--- ==========================================
---[[
-local LYui = loadstring(game:HttpGet(""))()
-local janela = LYui:CreateWindow("raknet desync")
-
--- Área 1
-local areaMain = janela:CreateArea("Main")
-areaMain:CreateLabel("must have raknet library")
-areaMain:CreateToggle("desync meow", function(state)
-    print("Desync status for desync meow:", state)
-end)
-
--- Área 2
-local areaAdv = janela:CreateArea("Advanced")
-areaAdv:CreateToggle("desync purr", function(state)
-    print("Desync status for desync purr:", state)
-end)
-
--- Área 3
-local areaSet = janela:CreateArea("Settings")
-areaSet:CreateToggle("desync hiss", function(state)
-    print("Desync status for desync hiss:", state)
-end)
-]]
