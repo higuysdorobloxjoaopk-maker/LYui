@@ -651,7 +651,54 @@ if type(newOpts) == "table" then populate(newOpts) end
 end
 }
 end
+      function area:CreateInput(iConfig)
+local InputContainer = Instance.new("Frame")
+InputContainer.Size = UDim2.new(1, -10, 0, 30)
+InputContainer.BackgroundTransparency = 1
+InputContainer.Parent = AreaContent
+
+local InputLabel = Instance.new("TextLabel")
+InputLabel.Size = UDim2.new(1, 0, 0, 15)
+InputLabel.BackgroundTransparency = 1
+InputLabel.Text = iConfig.Name or "Input"
+InputLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+InputLabel.TextSize = 14
+InputLabel.Font = Enum.Font.Code
+InputLabel.TextXAlignment = Enum.TextXAlignment.Left
+InputLabel.Parent = InputContainer
+
+local TextBox = Instance.new("TextBox")
+TextBox.Size = UDim2.new(1, 0, 0, 15)
+TextBox.Position = UDim2.new(0, 0, 0, 15)
+TextBox.BackgroundColor3 = Color3.fromRGB(25, 35, 50)
+TextBox.BorderSizePixel = 0
+TextBox.Text = iConfig.Default or ""
+TextBox.PlaceholderText = iConfig.Placeholder or ""
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.TextSize = 14
+TextBox.Font = Enum.Font.Code
+TextBox.ClearTextOnFocus = false
+TextBox.Parent = InputContainer
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 4)
+UICorner.Parent = TextBox
+
+TextBox.FocusLost:Connect(function(enterPressed)
+if iConfig.Callback then
+iConfig.Callback(TextBox.Text)
 end
+end)
+
+if iConfig.Id then
+LYui.Elements[iConfig.Id] = {
+Type = "Input",
+Update = function(newText)
+TextBox.Text = tostring(newText)
+end
+}
+end
+      end
 
 function area:CreateColorPicker(cConfig)
 local CPContainer = Instance.new("Frame")
