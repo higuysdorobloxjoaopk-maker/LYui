@@ -1,4 +1,4 @@
--- LYui Library (modified) -- Adiciona IDs para cada elemento e API para manipulação por script
+-- LYui Library
 
 local LYui = {}
 
